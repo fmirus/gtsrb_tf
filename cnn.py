@@ -62,6 +62,7 @@ class GTSRB_Classifier(object):
             false_classifications = []
             correctly_classified = 0
             correctly_classified_per_class = np.zeros(nb_classes)
+            correctly_classified_per_class_perc = np.zeros(nb_classes)
             total_num_per_class = np.zeros(nb_classes)
             num = len(eval_labels)
 
@@ -71,11 +72,12 @@ class GTSRB_Classifier(object):
                     correctly_classified += 1
                     correctly_classified_per_class[eval_labels[ind]] += 1
                 else:
-                    false_classifications.append([ind, p['classes'], eval_labels[ind]])
+                    false_classifications.append([ind, p['classes'], eval_labels[ind], p['probabilities'][p['classes']]])
 
             print("total classification performance: %1.2f percent"%(float(correctly_classified/float(num))*100))
             for ind in range(len(correctly_classified_per_class)):
                 print("classification performance for class %i (%s): %1.2f"%(ind, class_names[ind], float(correctly_classified_per_class[ind]/float(total_num_per_class[ind]))*100))
+                correctly_classified_per_class_perc[ind] = (correctly_classified_per_class[ind]/float(total_num_per_class[ind]))*100
 
             # write results to file
             with open("results.csv", 'w', newline='') as f:
@@ -89,7 +91,7 @@ class GTSRB_Classifier(object):
                 writer.writerow(['image index', 'classified id', 'correct class id'])
                 writer.writerows(false_classifications)
 
-            return false_classifications
+            return false_classifications, correctly_classified_per_class_perc
 
     @staticmethod
     def cnn_model_fn(features, labels, mode):
